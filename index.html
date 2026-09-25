@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Live Color Editor</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: monospace; background: #000000; color: #ddd; margin: 0; padding: 20px; }
+        h1 { text-align: center; color: #ffaa00; margin-top: 0; margin-bottom: 20px; }
+        .main { display: flex; gap: 20px; max-width: 1400px; margin: 0 auto; height: calc(100vh - 90px); }
+        .panel {
+            flex: 1;
+            background: #00000000;
+            border: 2px solid #ffffff2a;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+        .panel h2 { margin-top: 0; margin-bottom: 12px; font-size: 18px; }
+        textarea {
+            width: 100%;
+            flex: 1;
+            background: #ffffff10;
+            color: #fff;
+            border: 2px solid #ffffff28;
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 18px;
+            font-family: monospace;
+            resize: none;
+            outline: none;
+        }
+        textarea:focus { border-color: #ffaa00; }
+        .preview {
+            flex: 1;
+            background: #ffffff10;
+            padding: 12px;
+            border: 2px solid #ffffff28;
+            border-radius: 4px;
+            font-size: 22px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-family: monospace;
+            cursor: text;
+            overflow-y: auto;
+            user-select: text;
+            outline: none;
+        }
+        .preview:focus { border-color: #ffaa00; }
+        .context-menu {
+            position: absolute;
+            background: #00000073;
+            border: 2px solid #ffffff28;
+            border-radius: 6px;
+            padding: 10px;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.9);
+            display: none;
+            width: 380px;
+            max-height: 540px;
+            overflow-y: auto;
+        }
+        .context-menu::-webkit-scrollbar { width: 5px; }
+        .context-menu::-webkit-scrollbar-track { background: #000; }
+        .context-menu::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+        .section-title {
+            font-size: 11px;
+            color: #8b8b8ba1;
+            margin: 8px 0 4px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 31px);
+            gap: 5px;
+            margin-bottom: 6px;
+        }
+        .color-swatch {
+            width: 31px;
+            height: 31px;
+            border: 1px solid #00000000;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            font-family: monospace;
+            color: #ffffff;
+            user-select: none;
+            text-shadow: none;
+        }
+        .color-swatch:hover {
+            transform: scale(1);
+            border-color: #fff00000;
+            z-index: 2;
+            box-shadow: 0 0 0px rgba(255,255,255,0.4);
+        }
+        .format-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 22px;
+            border-top: 1px solid #ffffff34;
+            padding-top: 6px;
+        }
+        .format-btn {
+            padding: 4px 8px;
+            background: #02020248;
+            color: #fff;
+            border: 1px solid #ffffff2d;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 11px;
+        }
+        .format-btn:hover { background: #444; }
+        
+        .preset-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #22222242;
+            padding: 3px;
+            border-radius: 3px;
+            background: #00000027;
+        }
+        .preset-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #00000031;
+            padding: 3px 3px;
+            border-radius: 2px;
+            cursor: pointer;
+            border: 1px solid #2a2a2a2f;
+            height: 16px;
+        }
+        .preset-item:hover {
+            background: #22222254;
+            border-color: #36363677;
+        }
+        .preset-name { font-size: 11px; color: #aaa; margin-right: 8px; white-space: nowrap; }
+        .preset-preview { font-size: 12px; letter-spacing: normal; line-height: 1; overflow: hidden; white-space: nowrap; }
+
+        .custom-seq-box {
+            background: #08080849;
+            border: 1px solid #2a2a2a5b;
+            border-radius: 4px;
+            padding: 8px;
+            margin-top: 4px;
+        }
+        .custom-seq-input-wrap {
+            display: flex;
+            gap: 2px;
+            margin-top: 2px;
+        }
+        .custom-seq-input {
+            flex: 1;
+            background: #0303033d;
+            border: 1px solid #444;
+            color: #ffffff;
+            padding: 1px 3px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 13px;
+            outline: none;
+            letter-spacing: 1px;
+        }
+        .custom-seq-input:focus { border-color: #ffffff57; }
+        .custom-seq-input.at-limit {
+            border-color: #ff444452;
+            color: #ff4444;
+        }
+        .custom-seq-btn {
+            background: #00000034;
+            color: #fff;
+            border: 1px solid #55555549;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 11px;
+        }
+        .custom-seq-btn:hover { background: #0000004d; border-color: #44444449; }
+        .limit-counter {
+            font-size: 11px;
+            font-weight: bold;
+            color: #00ff00;
+        }
+        .limit-counter.over-limit {
+            color: #ff4444 !important;
+        }
+    </style>
+</head>
+<body>
+    <h1></h1>
+    
+    <div class="main">
+        <div class="panel">
+            <h2>Typing area</h2>
+            <textarea id="input" spellcheck="false"></textarea>
+        </div>
+
+        <div class="panel">
+            <h2>Live preview</h2>
+            <div id="preview" class="preview" contenteditable="true" spellcheck="false"></div>
+        </div>
+    </div>
+
+    <div id="contextMenu" class="context-menu">
+        <div class="section-title">Colors</div>
+        <div class="color-grid" id="colorGrid"></div>
+        <div class="section-title">Formatting</div>
+        <div class="format-group">
+            <button class="format-btn" data-format="§l">§l Bold</button>
+            <button class="format-btn" data-format="§o">§o Italic</button>
+            <button class="format-btn" data-format="§k">§k Obfuscate</button>
+            <button class="format-btn" data-format="§r">§r Reset</button>
+        </div>
+
+        <div class="section-title">
+            <span>Custom colors</span>
+            <span id="limitCounter" class="limit-counter">0/0</span>
+        </div>
+        <div class="custom-seq-box">
+            <div class="custom-seq-input-wrap">
+                <input type="text" id="customSeqInput" class="custom-seq-input" placeholder="e.g. 135a" spellcheck="false" autocomplete="off" />
+                <button id="applySeqBtn" class="custom-seq-btn">Apply</button>
+            </div>
+        </div>
+
+        <div class="section-title">Presets & Gradients</div>
+        <div class="preset-list" id="presetList"></div>
+    </div>
+
+    <script>
+        const input = document.getElementById('input');
+        const preview = document.getElementById('preview');
+        const contextMenu = document.getElementById('contextMenu');
+        const colorGrid = document.getElementById('colorGrid');
+        const presetList = document.getElementById('presetList');
+        const customSeqInput = document.getElementById('customSeqInput');
+        const applySeqBtn = document.getElementById('applySeqBtn');
+        const limitCounter = document.getElementById('limitCounter');
+
+        const minecraftColors = {
+            '0': '#000000', '1': '#0000aa', '2': '#00aa00', '3': '#00aaaa',
+            '4': '#aa0000', '5': '#aa00aa', '6': '#ffaa00', '7': '#aaaaaa',
+            '8': '#545454', '9': '#5454ff', 'a': '#54ff54', 'b': '#54ffff',
+            'c': '#ff5454', 'd': '#ff54ff', 'e': '#ffff54', 'f': '#ffffff',
+            'g': '#ddd605', 'h': '#e2d3d1', 'i': '#cec9c9', 'j': '#44393a',
+            'm': '#961506', 'n': '#b4684d', 'p': '#deb02c', 'q': '#119f36',
+            's': '#2cb9a8', 't': '#20487a', 'u': '#9a5cc5', 'v': '#ea7113',
+            'w': '#8bb3ff'
+        };
+
+        const customPresets = [
+            { name: 'Rainbow 2.0', codes: '§d,§u,§9,§w,§b,§a,§e,§g,§p,§6,§v,§c' },
+            { name: 'Rainbow', codes: '§d,§9,§b,§a,§e,§6,§c' },
+            { name: 'Rainbow dark', codes: '§5,§1,§3,§2,§p,§6,§4' },
+            { name: 'Rainbow dark old', codes: '§u,§t,§s,§q,§p,§n,§m' },
+            { name: 'NEW! RU', codes: '§9,§c,§f' },
+            { name: 'NEW! PL', codes: '§c,§f' },
+            { name: 'NEW! UE', codes: '§e,§9' },
+            { name: 'NEW! FR', codes: '§9,§f,§c' },
+            { name: 'NEW! AR', codes: '§w,§f,§e,§f' },
+            { name: 'Metal V1', codes: '§f,§7,§0,§7' },
+            { name: 'Metal V1 Visible', codes: '§f,§7' },
+            { name: 'Metal V2', codes: '§f,§7,§8,§0,§8,§7' },
+            { name: 'Metal V2 Visible', codes: '§f,§7,§8,§7' },
+            { name: 'Metal V3', codes: '§f,§h,§i,§7,§8,§j,§0,§j,§8,§7,§i,§h' },
+            { name: 'Metal V3 Visible', codes: '§f,§h,§i,§7,§8,§j,§8,§7,§i,§h' },
+            { name: 'Gold V1', codes: '§6,§e,§g,§e' },
+            { name: 'Gold V2', codes: '§6,§e,§g,§p,§g,§e' },
+            { name: 'Gold V3', codes: '§v,§6,§p,§g,§e,§g,§p,§6' },
+            { name: 'Ocean', codes: '§9,§1,§t,§1' },
+            { name: 'Ocean V2', codes: '§w,§9,§1,§t,§1,§9' },
+            { name: 'RGB', codes: '§c,§a,§9' },
+            { name: 'GRB', codes: '§a,§c,§9' },
+            { name: 'GBR', codes: '§c,§9,§a' },
+            { name: 'GRB', codes: '§a,§c,§9' },
+            { name: 'RBG', codes: '§c,§9,§a' },
+            { name: 'BRG', codes: '§9,§a,§c' },
+            { name: 'Red stripe', codes: '§c,§4' },
+            { name: 'Red stripe Old', codes: '§4,§m' },
+            { name: 'Green stripe', codes: '§a,§2' },
+            { name: 'Green stripe Old', codes: '§2,§q' },
+            { name: 'Blue stripe light', codes: '§w,§9' },
+            { name: 'Blue stripe', codes: '§9,§1' },
+            { name: 'Blue stripe Old', codes: '§t,§1' },
+            { name: 'Cyan stripe', codes: '§b,§3' },
+            { name: 'Cyan stripe Old', codes: '§s,§3' },
+            { name: 'Pink stripe', codes: '§d,§5' },
+            { name: 'Pink stripe Old', codes: '§u,§5' },
+            { name: 'Yellow stripe', codes: '§e,§g' },
+            { name: 'Yellow stripe Old', codes: '§g,§p' },
+            { name: 'Orange stripe', codes: '§6,§v' },
+            { name: 'BW stripe LV1 V1', codes: '§f,§0' },
+            { name: 'BW stripe LV1 V2', codes: '§h,§0' },
+            { name: 'BW stripe LV1 V3', codes: '§i,§0' },
+            { name: 'BW stripe LV1 V4', codes: '§7,§0' },
+            { name: 'BW stripe LV1 V5', codes: '§8,§0' },
+            { name: 'BW stripe LV1 V6', codes: '§j,§0' },
+            { name: 'BW stripe LV2 V1', codes: '§f,§j' },
+            { name: 'BW stripe LV2 V2', codes: '§h,§j' },
+            { name: 'BW stripe LV2 V3', codes: '§i,§j' },
+            { name: 'BW stripe LV2 V4', codes: '§7,§j' },
+            { name: 'BW stripe LV2 V5', codes: '§8,§j' },
+            { name: 'BW stripe LV3 V1', codes: '§f,§8' },
+            { name: 'BW stripe LV3 V2', codes: '§h,§8' },
+            { name: 'BW stripe LV3 V3', codes: '§i,§8' },
+            { name: 'BW stripe LV3 V4', codes: '§7,§8' },
+            { name: 'BW stripe LV3 V5', codes: '§j,§8' },
+            { name: 'BW stripe LV4 V1', codes: '§f,§7' },
+            { name: 'BW stripe LV4 V2', codes: '§h,§7' },
+            { name: 'BW stripe LV4 V3', codes: '§i,§7' },
+            { name: 'BW stripe LV4 V4', codes: '§8,§7' },
+            { name: 'BW stripe LV4 V5', codes: '§j,§7' },
+            { name: 'BW stripe LV5 V1', codes: '§f,§i' },
+            { name: 'BW stripe LV5 V2', codes: '§h,§i' },
+            { name: 'BW stripe LV5 V3', codes: '§7,§i' },
+            { name: 'BW stripe LV5 V4', codes: '§8,§i' },
+            { name: 'BW stripe LV5 V5', codes: '§j,§i' },
+            { name: 'BW stripe LV6 V1', codes: '§f,§h' },
+            { name: 'BW stripe LV6 V2', codes: '§h,§h' },
+            { name: 'BW stripe LV6 V3', codes: '§i,§h' },
+            { name: 'BW stripe LV6 V4', codes: '§7,§h' },
+            { name: 'BW stripe LV6 V5', codes: '§8,§h' },
+            { name: 'BW stripe LV6 V6', codes: '§j,§h' },
+            { name: 'BW stripe LV7 V1', codes: '§h,§f' },
+            { name: 'BW stripe LV7 V2', codes: '§i,§f' },
+            { name: 'BW stripe LV7 V3', codes: '§7,§f' },
+            { name: 'BW stripe LV7 V4', codes: '§8,§f' },
+            { name: 'BW stripe LV7 V5', codes: '§j,§f' },
+        ];
+
+        let targetStartPos = 0;
+        let targetEndPos = 0;
+        let selectedCharCount = 0;
+
+        window.addEventListener('beforeunload', (e) => {
+            if (input.value.trim().length > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        function renderPreview() {
+            let html = '';
+            let i = 0;
+            const text = input.value;
+            let color = '#ffffff';
+            let bold = false, italic = false, obf = false;
+
+            while (i < text.length) {
+                if (text[i] === '§' && i + 1 < text.length) {
+                    const code = text[i+1].toLowerCase();
+                    i += 2;
+                    if (code === 'r') {
+                        color = '#ffffff'; bold = italic = obf = false;
+                    } else if (minecraftColors[code]) {
+                        color = minecraftColors[code];
+                    } else if (code === 'l') bold = true;
+                    else if (code === 'o') italic = true;
+                    else if (code === 'k') obf = true;
+                    continue;
+                }
+
+                let style = `color:${color};`;
+                if (bold) style += 'font-weight:bold;';
+                if (italic) style += 'font-style:italic;';
+
+                const char = text[i];
+                const charAttr = `data-idx="${i}"`;
+                
+                if (obf) {
+                    html += `<span class="obf" style="${style}" ${charAttr}>#</span>`;
+                } else {
+                    const displayChar = char === ' ' ? '&nbsp;' : (char === '\n' ? '<br>' : char);
+                    html += `<span style="${style}" ${charAttr}>${displayChar}</span>`;
+                }
+                i++;
+            }
+            preview.innerHTML = html || '<span style="color:#666">Click to edit or type in source box...</span>';
+            localStorage.setItem('mc_editor_content', text);
+        }
+
+        function getIndexFromNode(node) {
+            let el = node.nodeType === 3 ? node.parentElement : node;
+            while (el && el !== preview && !el.hasAttribute('data-idx')) {
+                el = el.parentElement;
+            }
+            if (el && el.hasAttribute('data-idx')) {
+                return parseInt(el.getAttribute('data-idx'), 10);
+            }
+            return null;
+        }
+
+        function setCaretFromPoint(x, y) {
+            let range;
+            if (document.caretRangeFromPoint) {
+                range = document.caretRangeFromPoint(x, y);
+            } else if (document.caretPositionFromPoint) {
+                const pos = document.caretPositionFromPoint(x, y);
+                if (pos) {
+                    range = document.createRange();
+                    range.setStart(pos.offsetNode, pos.offset);
+                    range.collapse(true);
+                }
+            }
+            if (range) {
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+        }
+
+        function getPreviewCaretPosition() {
+            const sel = window.getSelection();
+            if (!sel || sel.rangeCount === 0) return input.selectionStart || 0;
+            const range = sel.getRangeAt(0);
+            const idx = getIndexFromNode(range.startContainer);
+            if (idx !== null) {
+                return idx + (range.startOffset > 0 ? 1 : 0);
+            }
+            return input.selectionStart || 0;
+        }
+
+        function setPreviewCaretPosition(rawTargetPos) {
+            const span = preview.querySelector(`[data-idx="${rawTargetPos}"]`);
+            if (span && span.firstChild) {
+                const range = document.createRange();
+                const sel = window.getSelection();
+                range.setStart(span.firstChild, 0);
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+        }
+
+        function updateSelectionPositions() {
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+                const range = sel.getRangeAt(0);
+                const startIdx = getIndexFromNode(range.startContainer);
+                const endIdx = getIndexFromNode(range.endContainer);
+
+                if (startIdx !== null && endIdx !== null) {
+                    targetStartPos = Math.min(startIdx, endIdx);
+                    targetEndPos = Math.max(startIdx, endIdx) + 1;
+                    
+                    const subText = input.value.slice(targetStartPos, targetEndPos);
+                    let count = 0;
+                    for (let i = 0; i < subText.length; i++) {
+                        if (subText[i] === '§') { i++; continue; }
+                        count++;
+                    }
+                    selectedCharCount = count;
+                    updateLimitCounter();
+                    return;
+                }
+            }
+
+            const caretPos = getPreviewCaretPosition();
+            targetStartPos = caretPos;
+            targetEndPos = caretPos;
+            selectedCharCount = 0;
+            updateLimitCounter();
+        }
+
+        function updateLimitCounter() {
+            const typedCount = customSeqInput.value.length;
+            
+            if (selectedCharCount > 0) {
+                customSeqInput.setAttribute('maxlength', selectedCharCount);
+            } else {
+                customSeqInput.removeAttribute('maxlength');
+            }
+
+            limitCounter.textContent = `${typedCount}/${selectedCharCount}`;
+            
+            if (selectedCharCount > 0 && typedCount >= selectedCharCount) {
+                limitCounter.classList.add('over-limit');
+                customSeqInput.classList.add('at-limit');
+            } else {
+                limitCounter.classList.remove('over-limit');
+                customSeqInput.classList.remove('at-limit');
+            }
+        }
+
+        function stripColorCodesKeepFormatting(textSegment) {
+            let result = '';
+            let i = 0;
+            while (i < textSegment.length) {
+                if (textSegment[i] === '§' && i + 1 < textSegment.length) {
+                    const code = textSegment[i+1].toLowerCase();
+                    if (['l', 'o', 'k', 'r', 'm', 'n'].includes(code)) {
+                        result += textSegment[i] + textSegment[i+1];
+                    }
+                    i += 2;
+                } else {
+                    result += textSegment[i];
+                    i++;
+                }
+            }
+            return result;
+        }
+
+        function applyColorPattern(codes) {
+            const text = input.value;
+            const formattedCodes = codes.map(c => c.startsWith('§') ? c : `§${c}`);
+
+            if (targetStartPos === targetEndPos) {
+                const insertStr = formattedCodes.join('');
+                insertTextAtPos(insertStr, targetStartPos, targetStartPos);
+            } else {
+                const selectedRaw = text.slice(targetStartPos, targetEndPos);
+                const cleanedText = stripColorCodesKeepFormatting(selectedRaw);
+
+                let formattedResult = '';
+                let colorIdx = 0;
+
+                for (let i = 0; i < cleanedText.length; i++) {
+                    const char = cleanedText[i];
+                    if (char === '§') {
+                        formattedResult += char;
+                        if (i + 1 < cleanedText.length) {
+                            formattedResult += cleanedText[i+1];
+                            i++;
+                        }
+                    } else if (char === '\n' || char === ' ') {
+                        formattedResult += char;
+                    } else {
+                        const codeStr = formattedCodes[colorIdx % formattedCodes.length];
+                        formattedResult += `${codeStr}${char}`;
+                        colorIdx++;
+                    }
+                }
+                insertTextAtPos(formattedResult, targetStartPos, targetEndPos);
+            }
+        }
+
+        function insertTextAtPos(newText, start, end) {
+            const text = input.value;
+            const before = text.slice(0, start);
+            const after = text.slice(end);
+
+            input.value = before + newText + after;
+            const newPos = start + newText.length;
+            input.focus();
+            input.setSelectionRange(newPos, newPos);
+
+            renderPreview();
+        }
+
+        // Swatches
+        Object.keys(minecraftColors).forEach(code => {
+            const sw = document.createElement('div');
+            sw.className = 'color-swatch';
+            const hexColor = minecraftColors[code];
+            sw.style.backgroundColor = hexColor;
+            sw.textContent = `§${code}`;
+            sw.title = `§${code} (${hexColor})`;
+            sw.onmousedown = (e) => e.preventDefault();
+            sw.onclick = () => {
+                applyColorPattern([`§${code}`]);
+                hideMenu();
+            };
+            colorGrid.appendChild(sw);
+        });
+
+        // Presets with 20 boxes preview limit without scroll arrows
+        customPresets.forEach(preset => {
+            const item = document.createElement('div');
+            item.className = 'preset-item';
+            
+            const codeArr = preset.codes.split(',').map(c => c.trim());
+            let previewBlocks = '';
+            
+            for (let i = 0; i < 20; i++) {
+                const code = codeArr[i % codeArr.length];
+                const char = code.replace('§', '').toLowerCase();
+                previewBlocks += `<span style="color:${minecraftColors[char] || '#fff'}">█</span>`;
+            }
+
+            item.innerHTML = `
+                <span class="preset-name">${preset.name}</span>
+                <span class="preset-preview">${previewBlocks}</span>
+            `;
+
+            item.onmousedown = (e) => e.preventDefault();
+            item.onclick = () => {
+                applyColorPattern(codeArr);
+                hideMenu();
+            };
+            presetList.appendChild(item);
+        });
+
+        // Apply Sequence
+        applySeqBtn.onclick = () => {
+            const rawVal = customSeqInput.value.trim();
+            if (!rawVal) return;
+            const codes = rawVal.split('').map(char => `§${char}`);
+            applyColorPattern(codes);
+            hideMenu();
+        };
+
+        // Enforce physical input block
+        customSeqInput.addEventListener('keydown', (e) => {
+            if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'].includes(e.key)) {
+                return;
+            }
+            if (e.ctrlKey || e.metaKey || e.altKey) {
+                return;
+            }
+            if (selectedCharCount > 0 && customSeqInput.value.length >= selectedCharCount) {
+                if (customSeqInput.selectionStart === customSeqInput.selectionEnd) {
+                    e.preventDefault();
+                }
+            }
+        });
+
+        customSeqInput.addEventListener('input', updateLimitCounter);
+
+        function showMenu(e) {
+            e.preventDefault();
+
+            if (e.target.closest('#preview')) {
+                const sel = window.getSelection();
+                if (!sel || sel.isCollapsed) {
+                    setCaretFromPoint(e.clientX, e.clientY);
+                }
+            }
+
+            updateSelectionPositions();
+
+            contextMenu.style.left = Math.min(e.pageX + 4, window.innerWidth - 400) + 'px';
+            contextMenu.style.top = Math.min(e.pageY + 4, window.innerHeight - 550) + 'px';
+            contextMenu.style.display = 'block';
+            customSeqInput.value = '';
+            updateLimitCounter();
+            customSeqInput.focus();
+        }
+
+        function hideMenu() {
+            contextMenu.style.display = 'none';
+        }
+
+        preview.addEventListener('contextmenu', showMenu);
+        input.addEventListener('contextmenu', showMenu);
+        
+        // Hide menu when clicking anywhere outside of the dropdown menu
+        document.addEventListener('pointerdown', (e) => {
+            if (!contextMenu.contains(e.target)) {
+                hideMenu();
+            }
+        });
+
+        // Typing inside preview pane
+        preview.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.altKey || e.key === 'Control' || e.key === 'Shift') return;
+            
+            const caretPos = getPreviewCaretPosition();
+            const text = input.value;
+
+            if (e.key === 'Backspace') {
+                e.preventDefault();
+                if (caretPos > 0) {
+                    let deleteCount = 1;
+                    if (caretPos >= 2 && text[caretPos - 2] === '§') {
+                        deleteCount = 2;
+                    }
+                    input.value = text.slice(0, caretPos - deleteCount) + text.slice(caretPos);
+                    const nextPos = caretPos - deleteCount;
+                    renderPreview();
+                    setPreviewCaretPosition(nextPos);
+                }
+            } else if (e.key === 'Delete') {
+                e.preventDefault();
+                if (caretPos < text.length) {
+                    let deleteCount = 1;
+                    if (text[caretPos] === '§') deleteCount = 2;
+                    input.value = text.slice(0, caretPos) + text.slice(caretPos + deleteCount);
+                    renderPreview();
+                    setPreviewCaretPosition(caretPos);
+                }
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                input.value = text.slice(0, caretPos) + '\n' + text.slice(caretPos);
+                renderPreview();
+                setPreviewCaretPosition(caretPos + 1);
+            } else if (e.key.length === 1) {
+                e.preventDefault();
+                input.value = text.slice(0, caretPos) + e.key + text.slice(caretPos);
+                renderPreview();
+                setPreviewCaretPosition(caretPos + 1);
+            }
+        });
+
+        document.querySelectorAll('.format-btn').forEach(btn => {
+            btn.onmousedown = (e) => e.preventDefault();
+            btn.addEventListener('click', () => {
+                applyColorPattern([btn.dataset.format]);
+                hideMenu();
+            });
+        });
+
+        input.addEventListener('input', () => renderPreview());
+        input.addEventListener('keyup', () => renderPreview());
+
+        const savedContent = localStorage.getItem('mc_editor_content');
+        if (savedContent !== null) {
+            input.value = savedContent;
+        } else {
+            input.value = "§1Yellow §vReddish";
+        }
+        renderPreview();
+
+        // Obfuscation tick
+        setInterval(() => {
+            const obfElements = document.querySelectorAll('.obf');
+            const chars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+            obfElements.forEach(el => {
+                el.textContent = chars[Math.floor(Math.random() * chars.length)];
+            });
+        }, 80);
+    </script>
+</body>
+</html>
