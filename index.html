@@ -5,10 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minecraft Live Color Editor</title>
     <style>
+
+        /* Define the custom font */
+@font-face {
+    font-family: 'MinecraftCustomFont';
+    /* Path relative to your HTML/CSS file */
+    src: url('fonts/Minecraft.ttf') format('truetype');
+    
+    /* Optional font settings */
+    font-weight: normal;
+    font-style: normal;
+}
+
         * { box-sizing: border-box; }
         body { font-family: monospace; background: #00000000; color: #ddd; margin: 0; padding: 0px; }
         h1 { text-align: center; color: #ffffff; margin-top: 0; margin-bottom: 0px; }
-        .main { display: flex; gap: 10px; max-width: 14000000000000px; margin: 0 auto; height: calc(100vh - 0px); }
+        .main { display: flex; gap: 10px; max-width: 100%; margin: 0 auto; height: calc(100vh - 0px); }
         .panel {
             flex: 1;
             background: #00000000;
@@ -39,7 +51,7 @@
             padding: 2px;
             border: 2px solid #ffffff28;
             border-radius: 4px;
-            font-size: 20px;
+            font-size: 11px;
             line-height: 1.4;
             white-space: pre-wrap;
             word-break: break-all;
@@ -69,7 +81,7 @@
         .section-title {
             font-size: 11px;
             color: #8b8b8ba1;
-            margin: 8px 0 4px 0;
+            margin: 0px 0 0px 0;
             text-transform: uppercase;
             letter-spacing: 0.8px;
             display: flex;
@@ -107,12 +119,12 @@
         .format-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 22px;
+            gap: 2px;
             border-top: 1px solid #ffffff34;
             padding-top: 6px;
         }
         .format-btn {
-            padding: 4px 8px;
+            padding: 0px 15.5px;
             background: #02020248;
             color: #fff;
             border: 1px solid #ffffff2d;
@@ -127,7 +139,7 @@
             display: flex;
             flex-direction: column;
             gap: 2px;
-            max-height: 200px;
+            max-height: 150px;
             overflow-y: auto;
             border: 1px solid #22222242;
             padding: 3px;
@@ -143,36 +155,36 @@
             border-radius: 2px;
             cursor: pointer;
             border: 1px solid #2a2a2a2f;
-            height: 16px;
+            height: 14px;
         }
         .preset-item:hover {
             background: #22222254;
             border-color: #36363677;
         }
-        .preset-name { font-size: 11px; color: #aaa; margin-right: 8px; white-space: nowrap; }
-        .preset-preview { font-size: 12px; letter-spacing: normal; line-height: 1; overflow: hidden; white-space: nowrap; }
+        .preset-name { font-size: 9px; color: #aaa; margin-right: 8px; white-space: nowrap; }
+        .preset-preview { font-size: 9px; letter-spacing: normal; line-height: 1; overflow: hidden; white-space: nowrap; }
 
         .custom-seq-box {
             background: #08080849;
             border: 1px solid #2a2a2a5b;
             border-radius: 4px;
-            padding: 8px;
-            margin-top: 4px;
+            padding: 2px;
+            margin-top: 0px;
         }
         .custom-seq-input-wrap {
             display: flex;
-            gap: 2px;
-            margin-top: 2px;
+            gap: 0px;
+            margin-top: 0px;
         }
         .custom-seq-input {
             flex: 1;
             background: #0303033d;
             border: 1px solid #444;
             color: #ffffff;
-            padding: 1px 3px;
+            padding: 0px 3px;
             border-radius: 3px;
             font-family: monospace;
-            font-size: 13px;
+            font-size: 10px;
             outline: none;
             letter-spacing: 1px;
         }
@@ -185,7 +197,7 @@
             background: #00000034;
             color: #fff;
             border: 1px solid #55555549;
-            padding: 5px 10px;
+            padding: 0px 10px;
             border-radius: 3px;
             cursor: pointer;
             font-family: monospace;
@@ -587,7 +599,7 @@
             const codeArr = preset.codes.split(',').map(c => c.trim());
             let previewBlocks = '';
             
-            for (let i = 0; i < 20; i++) {
+            for (let i = 0; i < 40; i++) {
                 const code = codeArr[i % codeArr.length];
                 const char = code.replace('§', '').toLowerCase();
                 previewBlocks += `<span style="color:${minecraftColors[char] || '#fff'}">█</span>`;
