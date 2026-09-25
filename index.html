@@ -10,7 +10,7 @@
 @font-face {
     font-family: 'MinecraftCustomFont';
     /* Path relative to your HTML/CSS file */
-    src: url('fonts/Minecraft.ttf') format('truetype');
+    src: url('fonts/Minecraft.woff') format('truetype');
     
     /* Optional font settings */
     font-weight: normal;
@@ -18,7 +18,7 @@
 }
 
         * { box-sizing: border-box; }
-        body { font-family: monospace; background: #00000000; color: #ddd; margin: 0; padding: 0px; }
+        body { font-family: MinecraftCustomFont; background: #00000000; font-weight: 0; color: #ddd; margin: 0; padding: 0px; }
         h1 { text-align: center; color: #ffffff; margin-top: 0; margin-bottom: 0px; }
         .main { display: flex; gap: 10px; max-width: 100%; margin: 0 auto; height: calc(100vh - 0px); }
         .panel {
@@ -38,9 +38,10 @@
             color: #fff;
             border: 2px solid #ffffff28;
             border-radius: 4px;
+            line-height: 0.5;
             padding: 2px;
-            font-size: 11px;
-            font-family: monospace;
+            font-size: 12px;
+            font-family: MinecraftCustomFont;
             resize: none;
             outline: none;
         }
@@ -51,11 +52,11 @@
             padding: 2px;
             border: 2px solid #ffffff28;
             border-radius: 4px;
-            font-size: 11px;
-            line-height: 1.4;
+            font-size: 12px;
+            line-height: 0.5;
             white-space: pre-wrap;
             word-break: break-all;
-            font-family: monospace;
+            font-family: MinecraftCustomFont;
             cursor: text;
             overflow-y: auto;
             user-select: text;
@@ -79,7 +80,7 @@
         .context-menu::-webkit-scrollbar-track { background: #000; }
         .context-menu::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
         .section-title {
-            font-size: 11px;
+            font-size: 12px;
             color: #8b8b8ba1;
             margin: 0px 0 0px 0;
             text-transform: uppercase;
@@ -103,9 +104,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
-            font-weight: bold;
-            font-family: monospace;
+            font-size: 12px;
+            font-family: MinecraftCustomFont;
             color: #ffffff;
             user-select: none;
             text-shadow: none;
@@ -130,8 +130,8 @@
             border: 1px solid #ffffff2d;
             border-radius: 3px;
             cursor: pointer;
-            font-family: monospace;
-            font-size: 11px;
+            font-family: MinecraftCustomFont;
+            font-size: 12px;
         }
         .format-btn:hover { background: #444; }
         
@@ -161,8 +161,8 @@
             background: #22222254;
             border-color: #36363677;
         }
-        .preset-name { font-size: 9px; color: #aaa; margin-right: 8px; white-space: nowrap; }
-        .preset-preview { font-size: 9px; letter-spacing: normal; line-height: 1; overflow: hidden; white-space: nowrap; }
+        .preset-name { font-size: 8px; color: #aaa; margin-right: 8px; white-space: nowrap; }
+        .preset-preview { font-size: 8px; letter-spacing: normal; line-height: 1; overflow: hidden; white-space: nowrap; }
 
         .custom-seq-box {
             background: #08080849;
@@ -183,7 +183,7 @@
             color: #ffffff;
             padding: 0px 3px;
             border-radius: 3px;
-            font-family: monospace;
+            font-family: MinecraftCustomFont;
             font-size: 10px;
             outline: none;
             letter-spacing: 1px;
@@ -200,13 +200,12 @@
             padding: 0px 10px;
             border-radius: 3px;
             cursor: pointer;
-            font-family: monospace;
-            font-size: 11px;
+            font-family: MinecraftCustomFont;
+            font-size: 8px;
         }
         .custom-seq-btn:hover { background: #0000004d; border-color: #44444449; }
         .limit-counter {
-            font-size: 11px;
-            font-weight: bold;
+            font-size: 12px;
             color: #00ff00;
         }
         .limit-counter.over-limit {
@@ -232,7 +231,6 @@
     <div id="contextMenu" class="context-menu">
         <div class="section-title">Colors</div>
         <div class="color-grid" id="colorGrid"></div>
-        <div class="section-title">Formatting</div>
         <div class="format-group">
             <button class="format-btn" data-format="§l">§l Bold</button>
             <button class="format-btn" data-format="§o">§o Italic</button>
